@@ -1,14 +1,13 @@
-# This is a Docker Compose file for a Todo application with multiple services.
-# It includes a web application, a MySQL database, a Redis cache, and a MongoDB database. 
+
 services:
   todo-app:
     build:
       context: ./app
-    links:
+    depends_on:
       - todo-database
     volumes: 
-      - ./app:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./app:/app
+      - /app/node_modules
     ports:
       - 3001:3001
 
