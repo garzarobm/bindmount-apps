@@ -8,15 +8,18 @@
 # from Docker Hub - https://hub.docker.com/_/mongo. 
 # You can add other services your application may depend on here.
 
+# This is a Docker Compose file for a simple Todo application
+# It defines two services: a Todo app and a MongoDB database.
+# made for macOS and Linux users,
 services:
   todo-app:
     build:
       context: ./app
     links:
       - todo-database
-    #volumes: 
-    #  - ./app:/usr/src/app
-    #  - /usr/src/app/node_modules
+    volumes: 
+      - ./app:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - 3001:3001
 
@@ -25,3 +28,12 @@ services:
     command: mongod --port 27018
     ports:
       - 27018:27018
+
+    volumes:
+      - todo-data:/data/db
+      - todo-config:/data/configdb
+volumes:
+  todo-data:
+    driver: local
+  todo-config:
+    driver: local
