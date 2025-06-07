@@ -1,16 +1,5 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker compose reference guide at
-# https://docs.docker.com/compose/compose-file/
-
-# Here the instructions define your application as two services called "todo-app" and “todo-database”
-# The service “todo-app” is built from the Dockerfile in the /app directory,
-# and the service “todo-database” uses the official MongoDB image 
-# from Docker Hub - https://hub.docker.com/_/mongo. 
-# You can add other services your application may depend on here.
-
-# This is a Docker Compose file for a simple Todo application
-# It defines two services: a Todo app and a MongoDB database.
-# made for macOS and Linux users,
+# This is a Docker Compose file for a Todo application with multiple services.
+# It includes a web application, a MySQL database, a Redis cache, and a MongoDB database. 
 services:
   todo-app:
     build:
@@ -25,29 +14,65 @@ services:
 
 # database services
 # MySQL database service
-  db:
+  # This service uses the official MySQL image from Docker Hub
+  # https://hub.docker.com/_/mysql
+  # It runs MySQL on port 4321 and persists data in a volume.
+  # The database is accessible at http://localhost:4321
+  # You can connect to it using a MySQL client or from your application.
+  # The service is named "mysql_db" and can be linked to your app service.
+  # The "app" service can access the database using the hostname "mysql_db".
+  mysql_db:
     image: mysql:8.4
-    container_name: cakephp_db
+    # The container is named "mysql_db" for easy identification.
+    # This name is used to refer to the container in other services.
+    container_name: mysql_db
+    # Environment variables for MySQL configuration
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: cakephp_db  
-
-#     MYSQL_USER: cakephp_user
+    
+      # Set the root password for MySQL
+      # This password is used to access the MySQL server as the root user.
+      # It is recommended to change this password to a secure one.
+      # In this example, the password is set to "mysecretpassword".
+      # You can change it to a more secure password.
+      MYSQL_ROOT_PASSWORD: mysecretpassword # The root password for MySQL
+      MYSQL_DATABASE: app_db  # The name of the database to create when the container starts
+      MYSQL_USER: app_user  # The username for the MySQL user
+      # The username for the MySQL user.
       MYSQL_PASSWORD: password
     ports:
       - "4321:3306"
     volumes:
       - db_data:/var/lib/mysql  # Persist MySQL data
+    
     restart: unless-stopped
-# Redis service for caching
+  # This service uses the official Redis image from Docker Hub
+  # https://hub.docker.com/_/redis
+  # It runs Redis on port 6389 and persists data in a volume.
+  # The Redis service is used for caching and session storage.
   redis:
     image: redis:latest
     ports:
-      - "6389:6379"
+      - "6379:6379"
     volumes:
-      - ./redis_data:/data:ro # Bind mount for Redis data
-      - redis_data:/data # Named volume for Redis data - this is optional
-    restart: unless-stopped
+      # Bind mount for Redis data - this is optional
+      # It allows you to persist Redis data on the host machine.
+      # You can remove this line if you don't need to persist Redis data.
+      # This is useful for development and testing purposes.
+      # If you want to persist Redis data, you can use a named volume instead.
+      # Uncomment the line below to use a bind mount for Redis data
+      # - ./redis_data:/data:ro # Bind mount for Redis data
+      # Named volume for Redis data - this is optional
+      # It allows you to persist Redis data in a named volume.
+      - ./redis_data:/data:ro # Bind mount for Redis data 
+      # Uncomment the line below to use a named volume for Redis data
+      # - redis_data:/data # Named volume for Redis data
+    # The Redis service is restarted unless stopped manually.
+    # This ensures that the Redis service is always running unless explicitly stopped.
+    # You can change this to "always" if you want the service to always restart.
+    # This is useful for production environments where you want the service to be always available.
+    # If you want to stop the service, you can use the "docker-compose stop" command.
+    # If you want to remove the service, you can use the "docker-compose down" command.
+    # If you want to remove the service and its associated volumes, you can use the "docker-compose down -v" command.
 # MongoDB database service
   # This service uses the official MongoDB image from Docker Hub
   # https://hub.docker.com/_/mongo
@@ -63,8 +88,9 @@ services:
       - 27018:27018
 
     volumes:
-      - todo-data:/data/db
-      - todo-config:/data/configdb
+      - todo-mongo-data:/data/db # Persist MongoDB data
+      - todo-mongo-config:/data/config # Persist MongoDB configuration data
+    restart: unless-stopped
 
 #postgres database service
   # This service uses the official PostgreSQL image from Docker Hub
@@ -74,20 +100,60 @@ services:
   # You can connect to it using a PostgreSQL client or from your application.
   # The service is named "todo-postgres" and is linked to the "todo-app" service.
   # The "todo-app" service can access the database using the hostname "todo-postgres".
-  todo-postgres:
+
+  :
     image: postgres:latest
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: webapp_user
+      # The username for the PostgreSQL user.
+      POSTGRES_PASSWORD: webapp_password
       POSTGRES_DB: webapp_db
     ports:
       - "5432:5432"
     volumes:
-      - todo-data:/var/lib/postgresql/data  # Persist PostgreSQL data
+      - todo-postgres-data:/var/lib/postgresql/data  # Persist PostgreSQL data
+      - todo-postgres-config:/var/lib/postgresql/config  # Persist PostgreSQL configuration data
     restart: unless-stopped
 
 volumes:
-  todo-data:
+  # Named volumes for persistent data storage
+  db_data:
     driver: local
-  todo-config:
+  redis_data:
+    driver: local
+  web_data:
+    driver: local
+  backend_data:
+    driver: local
+  backup_data:
+    driver: local
+  # Named volumes for Todo app data
+  # These volumes are used to persist data for the Todo app.
+  # The "todo-app-data" volume is used for the Todo app data directory.
+  # The "todo-database-data" volume is used for the MongoDB data directory.
+  # The "todo-postgres-data" volume is used for the PostgreSQL data directory.
+  # These volumes are created automatically when the services are started.
+  todo-app-data:
+    driver: local
+  # The "todo-database-data" volume is used for the MongoDB data directory.
+  # The "todo-backend-data" volume is used for the backend data directory.
+  # The "todo-postgres-data" volume is used for the PostgreSQL data directory.
+  # These volumes are created automatically when the services are started.
+  # You can access the data in these volumes using the Docker CLI or Docker Desktop.
+  todo-database-data:
+    driver: local
+  todo-backend-data:
+    driver: local
+  todo-postgres-data:
+    driver: local
+
+  # MongoDB data
+  # These volumes are used to persist MongoDB data and configuration.
+  # The "todo-data" volume is used for the MongoDB data directory.
+  # The "todo-config" volume is used for the MongoDB configuration directory.
+  # These volumes are created automatically when the services are started.
+  # You can access the data in these volumes using the Docker CLI or Docker Desktop.
+  todo-mongo-data:
+    driver: local
+  todo-mongo-config:
     driver: local
