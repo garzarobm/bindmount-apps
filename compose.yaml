@@ -25,13 +25,36 @@ services:
 
 # database services
 # MySQL database service
-  # db:
-  #   image: mysql:8.4
-  #   container_name: cakephp_db
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: rootpassword
-  #     MYSQL_DATABASE: cakephp_db  
+  db:
+    image: mysql:8.4
+    container_name: cakephp_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cakephp_db  
 
+#     MYSQL_USER: cakephp_user
+      MYSQL_PASSWORD: password
+    ports:
+      - "4321:3306"
+    volumes:
+      - db_data:/var/lib/mysql  # Persist MySQL data
+    restart: unless-stopped
+# Redis service for caching
+  redis:
+    image: redis:latest
+    ports:
+      - "6389:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+# MongoDB database service
+  # This service uses the official MongoDB image from Docker Hub
+  # https://hub.docker.com/_/mongo
+  # It runs MongoDB on port 27018 and persists data in a volume.
+  # The database is accessible at http://localhost:27018
+  # You can connect to it using a MongoDB client or from your application.
+  # The service is named "todo-database" and is linked to the "todo-app" service.
+  # The "todo-app" service can access the database using the hostname "todo-database".
   todo-database:
     image: mongo:6
     command: mongod --port 27018
@@ -41,6 +64,27 @@ services:
     volumes:
       - todo-data:/data/db
       - todo-config:/data/configdb
+
+#postgres database service
+  # This service uses the official PostgreSQL image from Docker Hub
+  # https://hub.docker.com/_/postgres
+  # It runs PostgreSQL on port 5432 and persists data in a volume.
+  # The database is accessible at http://localhost:5432
+  # You can connect to it using a PostgreSQL client or from your application.
+  # The service is named "todo-postgres" and is linked to the "todo-app" service.
+  # The "todo-app" service can access the database using the hostname "todo-postgres".
+  todo-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: webapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - todo-data:/var/lib/postgresql/data  # Persist PostgreSQL data
+    restart: unless-stopped
+
 volumes:
   todo-data:
     driver: local
