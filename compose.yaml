@@ -45,7 +45,8 @@ services:
     ports:
       - "6389:6379"
     volumes:
-      - redis_data:/data
+      - ./redis_data:/data:ro # Bind mount for Redis data
+      - redis_data:/data # Named volume for Redis data - this is optional
     restart: unless-stopped
 # MongoDB database service
   # This service uses the official MongoDB image from Docker Hub
