@@ -2,6 +2,13 @@ const mongoose = require('mongoose');
 const bodyParse = require('body-parser');
 const app = require('express')();
 const moment = require('moment');
+// Load environment variables
+require('dotenv').config();
+// Set static folder
+app.use('/public', require('express').static('public'));
+// Set view folder
+app.set('views', require('path').join(__dirname, 'views'));
+
 
 // Fontend route
 const FrontRouter = require('./routes/front');
